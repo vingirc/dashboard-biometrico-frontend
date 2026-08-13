@@ -1,0 +1,45 @@
+<div
+  class="bg-gray-800 border border-gray-700 rounded-2xl p-6 flex flex-col items-center gap-4 h-full"
+>
+  @if (record) {
+    <div class="w-full flex items-start justify-between">
+      <div>
+        <p class="text-sm text-gray-400">Frecuencia cardiaca</p>
+        <p class="text-xs text-gray-500">{{ record.username ?? 'Dispositivo anonimo' }}</p>
+      </div>
+      <span
+        class="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full"
+        [ngClass]="statusClasses(record.heartRate)"
+      >
+        <i class="pi" [ngClass]="statusIcon(record.heartRate)" aria-hidden="true"></i>
+        {{ statusLabel(record.heartRate) }}
+      </span>
+    </div>
+
+    <div
+      role="img"
+      [attr.aria-label]="
+        'Frecuencia cardiaca ' + record.heartRate + ' BPM, estado ' + statusLabel(record.heartRate)
+      "
+    >
+      <p-knob
+        [ngModel]="record.heartRate"
+        [readonly]="true"
+        [min]="0"
+        [max]="220"
+        [size]="200"
+        [strokeWidth]="10"
+        [valueColor]="knobValueColor(record.heartRate)"
+        rangeColor="#374151"
+        textColor="#f3f4f6"
+        valueTemplate="{value} BPM"
+      ></p-knob>
+    </div>
+
+    <p class="text-xs text-gray-500">Última lectura: {{ record.timestamp | date: 'HH:mm:ss' }}</p>
+  } @else {
+    <div class="h-[280px] w-full flex items-center justify-center text-gray-500 text-sm">
+      Esperando datos del sensor...
+    </div>
+  }
+</div>

@@ -1,0 +1,50 @@
+<div class="min-h-screen w-full bg-gray-900 text-gray-100 flex items-center justify-center px-4">
+  <form
+    class="w-full max-w-sm bg-gray-800 border border-gray-700 rounded-2xl p-8 flex flex-col gap-5"
+    (ngSubmit)="submit()"
+  >
+    <div class="text-center mb-2">
+      <div class="text-2xl font-bold text-blue-400">BIOMETRICS</div>
+      <p class="text-sm text-gray-400 mt-1">Inicia sesion para continuar</p>
+    </div>
+
+    @if (errorMessage()) {
+      <p-message severity="error" [text]="errorMessage()!" styleClass="w-full"></p-message>
+    }
+
+    <div class="flex flex-col gap-2">
+      <label for="username" class="text-sm text-gray-400">Usuario</label>
+      <input
+        id="username"
+        type="text"
+        pInputText
+        name="username"
+        [(ngModel)]="username"
+        autocomplete="username"
+        class="w-full"
+      />
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label for="password" class="text-sm text-gray-400">Contraseña</label>
+      <p-password
+        inputId="password"
+        name="password"
+        [(ngModel)]="password"
+        [feedback]="false"
+        [toggleMask]="true"
+        autocomplete="current-password"
+        styleClass="w-full"
+        inputStyleClass="w-full"
+      ></p-password>
+    </div>
+
+    <p-button
+      type="submit"
+      label="Entrar"
+      [loading]="loading()"
+      [disabled]="!username || !password"
+      styleClass="w-full mt-2"
+    ></p-button>
+  </form>
+</div>

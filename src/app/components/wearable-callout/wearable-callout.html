@@ -1,0 +1,63 @@
+<section
+  class="bg-gray-800 border border-gray-700 rounded-2xl p-6 flex flex-col md:flex-row gap-6 items-start"
+  aria-labelledby="wearable-callout-title"
+>
+  <div class="flex-1 flex flex-col gap-3">
+    <div>
+      <h2 id="wearable-callout-title" class="text-lg font-semibold text-gray-100">
+        <i class="pi pi-stopwatch text-blue-400 mr-2" aria-hidden="true"></i>
+        App companion para Wear OS
+      </h2>
+      <p class="text-sm text-gray-400 mt-1">
+        Las lecturas de este panel llegan desde un reloj con Wear OS que envía la frecuencia
+        cardiaca al backend. El proyecto del reloj vive en un repositorio aparte.
+      </p>
+    </div>
+
+    <div>
+      <p class="text-sm text-gray-400 mb-2">Instalación desde el código fuente:</p>
+      <ol class="text-sm text-gray-300 flex flex-col gap-2 list-decimal list-inside">
+        <li>
+          Clona el repositorio:
+          <code
+            class="bg-gray-900 border border-gray-700 rounded px-2 py-0.5 text-xs text-blue-300"
+          >
+            git clone {{ repoUrl }}.git
+          </code>
+        </li>
+        <li>Ábrelo en Android Studio y espera a que sincronice Gradle.</li>
+        <li>
+          Con el reloj o el emulador conectado, ejecuta
+          <code
+            class="bg-gray-900 border border-gray-700 rounded px-2 py-0.5 text-xs text-blue-300"
+          >
+            ./gradlew installDebug
+          </code>
+        </li>
+      </ol>
+    </div>
+
+    <a
+      [href]="repoUrl"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="inline-flex items-center gap-2 self-start text-sm font-medium text-blue-400 hover:text-blue-300 hover:underline rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+    >
+      <i class="pi pi-github" aria-hidden="true"></i>
+      Ver el repositorio del wearable en GitHub
+      <span class="sr-only">(se abre en una pestaña nueva)</span>
+    </a>
+  </div>
+
+  <div class="flex flex-col items-center gap-2 shrink-0">
+    <img
+      [src]="qrUrl"
+      alt="Código QR con el enlace al repositorio del wearable"
+      width="120"
+      height="120"
+      loading="lazy"
+      class="rounded-lg bg-white p-1"
+    />
+    <p class="text-xs text-gray-500">Escanea para abrir el repo</p>
+  </div>
+</section>

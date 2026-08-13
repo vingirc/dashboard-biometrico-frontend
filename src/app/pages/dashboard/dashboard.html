@@ -1,0 +1,19 @@
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- Tarjeta: frecuencia cardiaca actual -->
+  <app-bpm-widget [record]="latest$ | async" />
+
+  <!-- Tarjeta: historial de pulsaciones -->
+  <div class="bg-gray-800 border border-gray-700 rounded-2xl p-6 lg:col-span-2 flex flex-col">
+    <div class="mb-4">
+      <p class="text-sm text-gray-400">Historial de pulsaciones</p>
+      <p class="text-xs text-gray-500">
+        Últimas {{ (records$ | async)?.length ?? 0 }} lecturas · actualiza cada 3s
+      </p>
+    </div>
+    <div class="flex-1 min-h-[300px]">
+      <p-chart type="line" [data]="chartData$ | async" [options]="chartOptions" height="300px"></p-chart>
+    </div>
+  </div>
+</div>
+
+<app-wearable-callout class="block mt-6" />

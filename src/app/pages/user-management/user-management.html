@@ -1,0 +1,155 @@
+<div class="bg-gray-800 border border-gray-700 rounded-2xl p-6">
+  <div class="mb-4 flex items-end justify-between gap-4">
+    <div>
+      <p class="text-sm text-gray-400">Gestion de usuarios</p>
+      <p class="text-xs text-gray-500">
+        Edita cuentas, cambia roles o reinicia PINs. El historial de un usuario deshabilitado no se
+        pierde.
+      </p>
+    </div>
+    <label class="sr-only" for="usuarios-search">Buscar por nombre o rol</label>
+    <input
+      id="usuarios-search"
+      type="search"
+      pInputText
+      placeholder="Buscar por nombre o rol..."
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="onSearchChange($event)"
+      class="w-64"
+    />
+  </div>
+
+  <p-table [value]="(filteredUsers$ | async) ?? []" [rowHover]="true" styleClass="p-datatable-sm">
+    <ng-template #header>
+      <tr>
+        <th>Nombre</th>
+        <th>Rol</th>
+        <th>Estado</th>
+        <th><span class="sr-only">Acciones</span></th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-user>
+      <tr>
+        <td class="text-gray-100">{{ user.username }}</td>
+        <td class="text-gray-300">{{ user.role }}</td>
+        <td>
+          <p-tag
+            [value]="user.isEnabled ? 'Habilitado' : 'Deshabilitado'"
+            [severity]="user.isEnabled ? 'success' : 'danger'"
+          ></p-tag>
+        </td>
+        <td>
+          <div class="flex gap-2 justify-end">
+            <p-button
+              label="Editar"
+              icon="pi pi-pencil"
+              severity="secondary"
+              size="small"
+              [outlined]="true"
+              [ariaLabel]="'Editar a ' + user.username"
+              (onClick)="openEdit(user)"
+            ></p-button>
+            <p-button
+              [label]="user.isEnabled ? 'Deshabilitar' : 'Habilitar'"
+              [severity]="user.isEnabled ? 'danger' : 'success'"
+              size="small"
+              [outlined]="true"
+              [ariaLabel]="(user.isEnabled ? 'Deshabilitar a ' : 'Habilitar a ') + user.username"
+              (onClick)="toggle(user)"
+            ></p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="4" class="text-center text-gray-500 py-6">No hay usuarios registrados.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  header="Editar usuario"
+  [visible]="editing() !== null"
+  (visibleChange)="onDialogVisibleChange($event)"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '26rem' }"
+>
+  @if (editing()) {
+    <form class="flex flex-col gap-4" (ngSubmit)="saveEdit()">
+      @if (editError()) {
+        <p-message severity="error" [text]="editError()!" styleClass="w-full"></p-message>
+      }
+
+      <div class="flex flex-col gap-2">
+        <label for="edit-username" class="text-sm text-gray-400">Nombre de usuario</label>
+        <input
+          id="edit-username"
+          type="text"
+          pInputText
+          name="username"
+          [(ngModel)]="editUsername"
+          [attr.aria-invalid]="usernameInvalid"
+          autocomplete="off"
+          class="w-full"
+        />
+        @if (usernameInvalid) {
+          <small class="text-red-400">El nombre no puede quedar vacio.</small>
+        }
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="edit-role" class="text-sm text-gray-400">Rol</label>
+        <p-select
+          inputId="edit-role"
+          name="role"
+          [options]="roleOptions"
+          optionLabel="label"
+          optionValue="value"
+          [(ngModel)]="editRole"
+          styleClass="w-full"
+        ></p-select>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="edit-pin" class="text-sm text-gray-400">Nuevo PIN (opcional)</label>
+        <input
+          id="edit-pin"
+          type="text"
+          pInputText
+          name="pin"
+          inputmode="numeric"
+          maxlength="6"
+          placeholder="Dejalo vacio para no cambiarlo"
+          [(ngModel)]="editPin"
+          [attr.aria-invalid]="pinInvalid"
+          aria-describedby="edit-pin-help"
+          autocomplete="off"
+          class="w-full"
+        />
+        <small id="edit-pin-help" [class]="pinInvalid ? 'text-red-400' : 'text-gray-500'">
+          Entre 4 y 6 digitos.
+        </small>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <p-button
+          type="button"
+          label="Cancelar"
+          severity="secondary"
+          [text]="true"
+          (onClick)="closeEdit()"
+        ></p-button>
+        <p-button
+          type="submit"
+          label="Guardar"
+          [loading]="saving()"
+          [disabled]="usernameInvalid || pinInvalid"
+        ></p-button>
+      </div>
+    </form>
+  }
+</p-dialog>
