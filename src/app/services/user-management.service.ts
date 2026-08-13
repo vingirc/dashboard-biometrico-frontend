@@ -13,7 +13,7 @@ export interface AppUser {
 @Injectable({ providedIn: 'root' })
 export class UserManagementService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8080/api/users';
+  private readonly apiUrl = '/api/users';
 
   private readonly usersSubject = new BehaviorSubject<AppUser[]>([]);
   readonly users$ = this.usersSubject.asObservable();

@@ -19,7 +19,7 @@ export interface TelemetryIngestRequest {
 @Injectable({ providedIn: 'root' })
 export class TelemetryService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8080/api/telemetry';
+  private readonly apiUrl = '/api/telemetry';
 
   private readonly recordsSubject = new BehaviorSubject<TelemetryRecord[]>([]);
   readonly records$ = this.recordsSubject.asObservable();
