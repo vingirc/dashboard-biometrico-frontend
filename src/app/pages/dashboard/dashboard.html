@@ -8,22 +8,70 @@
   ></p-message>
 }
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-  <!-- Tarjeta: frecuencia cardiaca actual -->
-  <app-bpm-widget [record]="latest$ | async" />
-
-  <!-- Tarjeta: historial de pulsaciones -->
-  <div class="bg-gray-800 border border-gray-700 rounded-2xl p-6 lg:col-span-2 flex flex-col">
+@if (isAdmin) {
+  <!-- Vista de administrador: solo agregados, nunca las lecturas de una persona en concreto -->
+  <section aria-labelledby="resumen-sistema">
     <div class="mb-4">
-      <p class="text-sm text-gray-400">Historial de pulsaciones</p>
+      <h2 id="resumen-sistema" class="text-sm text-gray-400">Resumen del sistema</h2>
       <p class="text-xs text-gray-500">
-        Últimas {{ (records$ | async)?.length ?? 0 }} lecturas · actualiza cada 3s
+        Agregado de todas las lecturas registradas · actualiza cada 3s
       </p>
     </div>
-    <div class="flex-1 min-h-[300px]">
-      <p-chart type="line" [data]="chartData$ | async" [options]="chartOptions" height="300px"></p-chart>
+
+    @if (summary$ | async; as summary) {
+      <dl class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl p-6">
+          <dt class="text-sm text-gray-400">Usuarios monitoreados</dt>
+          <dd class="mt-2 text-3xl font-semibold text-gray-100">{{ summary.monitoredUsers }}</dd>
+        </div>
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl p-6">
+          <dt class="text-sm text-gray-400">Lecturas totales</dt>
+          <dd class="mt-2 text-3xl font-semibold text-gray-100">{{ summary.totalReadings }}</dd>
+        </div>
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl p-6">
+          <dt class="text-sm text-gray-400">Lecturas críticas</dt>
+          <dd
+            class="mt-2 text-3xl font-semibold"
+            [class]="summary.criticalReadings ? 'text-red-400' : 'text-gray-100'"
+          >
+            {{ summary.criticalReadings }}
+          </dd>
+        </div>
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl p-6">
+          <dt class="text-sm text-gray-400">Lecturas bajas</dt>
+          <dd
+            class="mt-2 text-3xl font-semibold"
+            [class]="summary.lowReadings ? 'text-blue-400' : 'text-gray-100'"
+          >
+            {{ summary.lowReadings }}
+          </dd>
+        </div>
+      </dl>
+    }
+  </section>
+} @else {
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Tarjeta: frecuencia cardiaca actual -->
+    <app-bpm-widget [record]="latest$ | async" />
+
+    <!-- Tarjeta: historial de pulsaciones -->
+    <div class="bg-gray-800 border border-gray-700 rounded-2xl p-6 lg:col-span-2 flex flex-col">
+      <div class="mb-4">
+        <p class="text-sm text-gray-400">Historial de pulsaciones</p>
+        <p class="text-xs text-gray-500">
+          Últimas {{ (records$ | async)?.length ?? 0 }} lecturas · actualiza cada 3s
+        </p>
+      </div>
+      <div class="flex-1 min-h-[300px]">
+        <p-chart
+          type="line"
+          [data]="chartData$ | async"
+          [options]="chartOptions"
+          height="300px"
+        ></p-chart>
+      </div>
     </div>
   </div>
-</div>
+}
 
 <app-wearable-callout class="block mt-6" />

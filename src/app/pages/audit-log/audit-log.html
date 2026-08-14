@@ -1,12 +1,24 @@
 <div class="bg-gray-800 border border-gray-700 rounded-2xl p-6">
-  <div class="mb-4">
-    <p class="text-sm text-gray-400">Registro de auditoría</p>
-    <p class="text-xs text-gray-500">
-      Eventos de seguridad y de administración de cuentas, del más reciente al más antiguo.
-    </p>
+  <div class="mb-4 flex items-end justify-between gap-4">
+    <div>
+      <p class="text-sm text-gray-400">Registro de auditoría</p>
+      <p class="text-xs text-gray-500">
+        Eventos de seguridad y de administración de cuentas, del más reciente al más antiguo.
+      </p>
+    </div>
+    <label class="sr-only" for="auditoria-search">Buscar en el registro de auditoría</label>
+    <input
+      id="auditoria-search"
+      type="search"
+      pInputText
+      placeholder="Buscar en el registro (tolera errores de tipeo)..."
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="onSearchChange($event)"
+      class="w-72 shrink-0"
+    />
   </div>
 
-  <p-table [value]="(entries$ | async) ?? []" [rowHover]="true" styleClass="p-datatable-sm">
+  <p-table [value]="(filteredEntries$ | async) ?? []" [rowHover]="true" styleClass="p-datatable-sm">
     <ng-template #header>
       <tr>
         <th scope="col">Evento</th>

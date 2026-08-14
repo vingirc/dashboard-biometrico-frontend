@@ -18,6 +18,14 @@ const records: TelemetryRecord[] = [
     isCritical: false,
     isLow: false,
   },
+  {
+    id: '2',
+    username: 'mariana',
+    heartRate: 170,
+    timestamp: new Date().toISOString(),
+    isCritical: true,
+    isLow: false,
+  },
 ];
 
 const stats: TelemetryUserStats[] = [
@@ -63,14 +71,34 @@ describe('Historial', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  // El backend ya limita a un USER a sus propias lecturas, asi que el buscador no filtraba nada.
-  it('shows a plain record list without a search box for a non-admin', async () => {
+  // El backend ya limita a un USER a sus propias lecturas, asi que el buscador no filtraba nada,
+  // y la columna "Usuario" repetia su propio nombre en cada fila.
+  it('shows a plain record list without a search box or username column for a non-admin', async () => {
     const fixture = await createFixture('USER');
     const element = fixture.nativeElement as HTMLElement;
 
     expect(element.querySelector('input[type="search"]')).toBeNull();
-    expect(element.textContent).toContain('mariana');
+    expect(element.textContent).not.toContain('mariana');
     expect(element.textContent).toContain('80');
+  });
+
+  it('summarizes the non-admin own readings client-side', async () => {
+    const fixture = await createFixture('USER');
+    const summary = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('dl div'),
+    ).map((tile) => [
+      tile.querySelector('dt')?.textContent?.trim(),
+      tile.querySelector('dd')?.textContent?.trim(),
+    ]);
+
+    expect(summary).toEqual([
+      ['Lecturas', '2'],
+      ['Promedio BPM', '125.0'],
+      ['Mínimo', '80'],
+      ['Máximo', '170'],
+      ['Críticas', '1'],
+      ['Bajas', '0'],
+    ]);
   });
 
   it('shows the per-user stats table for an admin', async () => {

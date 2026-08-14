@@ -3,10 +3,15 @@ import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UIChart } from 'primeng/chart';
 import { Message } from 'primeng/message';
-import { Subscription, interval, map } from 'rxjs';
+import { EMPTY, Subscription, catchError, interval, map, startWith, switchMap } from 'rxjs';
 import { BpmWidget } from '../../components/bpm-widget/bpm-widget';
 import { WearableCallout } from '../../components/wearable-callout/wearable-callout';
-import { TelemetryRecord, TelemetryService } from '../../services/telemetry.service';
+import { AuthService } from '../../services/auth.service';
+import {
+  TelemetryRecord,
+  TelemetryService,
+  TelemetryUserStats,
+} from '../../services/telemetry.service';
 import { CRITICAL_BPM, STATUS_COLOR, isCritical } from '../../shared/bpm-status';
 
 const POLL_INTERVAL_MS = 3000;
@@ -14,6 +19,32 @@ const POLL_INTERVAL_MS = 3000;
 const SERIES_BLUE = '#3987e5';
 const GRID_COLOR = 'rgba(255, 255, 255, 0.08)';
 const TICK_COLOR = '#9ca3af';
+
+interface SystemSummary {
+  monitoredUsers: number;
+  totalReadings: number;
+  criticalReadings: number;
+  lowReadings: number;
+}
+
+const EMPTY_SUMMARY: SystemSummary = {
+  monitoredUsers: 0,
+  totalReadings: 0,
+  criticalReadings: 0,
+  lowReadings: 0,
+};
+
+function summarize(stats: TelemetryUserStats[]): SystemSummary {
+  return stats.reduce<SystemSummary>(
+    (acc, row) => ({
+      monitoredUsers: acc.monitoredUsers + 1,
+      totalReadings: acc.totalReadings + row.totalReadings,
+      criticalReadings: acc.criticalReadings + row.criticalCount,
+      lowReadings: acc.lowReadings + row.lowCount,
+    }),
+    EMPTY_SUMMARY,
+  );
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -23,16 +54,37 @@ const TICK_COLOR = '#9ca3af';
 })
 export class Dashboard implements OnInit, OnDestroy {
   private readonly telemetryService = inject(TelemetryService);
+  private readonly authService = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private pollingSubscription?: Subscription;
 
   readonly adminRequiredNotice = signal(false);
 
+  // Un ADMIN recibe en /recent las lecturas de todo el mundo, asi que el widget y la grafica
+  // mezclarian usuarios. Para ese rol se muestra el agregado del sistema, sin datos individuales.
+  readonly isAdmin = this.authService.currentUserSnapshot()?.role === 'ADMIN';
+
   readonly records$ = this.telemetryService.records$;
   readonly latest$ = this.telemetryService.latest$;
 
   readonly chartData$ = this.records$.pipe(map((records) => this.buildChartData(records)));
+
+  // El catchError va dentro del switchMap para que un fallo de red no mate el sondeo: se conserva
+  // el ultimo resumen y el siguiente tick vuelve a intentarlo.
+  readonly summary$ = interval(POLL_INTERVAL_MS).pipe(
+    startWith(0),
+    switchMap(() =>
+      this.telemetryService.fetchStats().pipe(
+        catchError((err) => {
+          console.error('Error al obtener el resumen de telemetría', err);
+          return EMPTY;
+        }),
+      ),
+    ),
+    map(summarize),
+    startWith(EMPTY_SUMMARY),
+  );
 
   readonly chartOptions = {
     responsive: true,
@@ -65,6 +117,9 @@ export class Dashboard implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.readAdminRequiredNotice();
+    if (this.isAdmin) {
+      return;
+    }
     this.telemetryService.fetchRecent();
     this.pollingSubscription = interval(POLL_INTERVAL_MS).subscribe(() =>
       this.telemetryService.fetchRecent(),

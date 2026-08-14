@@ -50,10 +50,50 @@
       </p>
     </div>
 
+    @if (personalStats$ | async; as personal) {
+      <dl class="flex flex-wrap gap-x-8 gap-y-3 mb-4 pb-4 border-b border-gray-700">
+        <div>
+          <dt class="text-xs text-gray-500">Lecturas</dt>
+          <dd class="text-lg font-semibold text-gray-100">{{ personal.totalReadings }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-gray-500">Promedio BPM</dt>
+          <dd class="text-lg font-semibold text-gray-100">
+            {{ formatAvg(personal.avgHeartRate) }}
+          </dd>
+        </div>
+        <div>
+          <dt class="text-xs text-gray-500">Mínimo</dt>
+          <dd class="text-lg font-semibold text-gray-100">{{ personal.minHeartRate ?? '—' }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-gray-500">Máximo</dt>
+          <dd class="text-lg font-semibold text-gray-100">{{ personal.maxHeartRate ?? '—' }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-gray-500">Críticas</dt>
+          <dd
+            class="text-lg font-semibold"
+            [class]="personal.criticalCount ? 'text-red-400' : 'text-gray-100'"
+          >
+            {{ personal.criticalCount }}
+          </dd>
+        </div>
+        <div>
+          <dt class="text-xs text-gray-500">Bajas</dt>
+          <dd
+            class="text-lg font-semibold"
+            [class]="personal.lowCount ? 'text-blue-400' : 'text-gray-100'"
+          >
+            {{ personal.lowCount }}
+          </dd>
+        </div>
+      </dl>
+    }
+
     <p-table [value]="(records$ | async) ?? []" [rowHover]="true" styleClass="p-datatable-sm">
       <ng-template #header>
         <tr>
-          <th scope="col">Usuario</th>
           <th scope="col">BPM</th>
           <th scope="col">Estado</th>
           <th scope="col">Hora</th>
@@ -61,7 +101,6 @@
       </ng-template>
       <ng-template #body let-record>
         <tr>
-          <td class="text-gray-100">{{ record.username ?? 'Dispositivo anonimo' }}</td>
           <td class="text-gray-300">{{ record.heartRate }}</td>
           <td>
             <p-tag
@@ -74,7 +113,7 @@
       </ng-template>
       <ng-template #emptymessage>
         <tr>
-          <td colspan="4" class="text-center text-gray-500 py-6">Todavía no hay lecturas.</td>
+          <td colspan="3" class="text-center text-gray-500 py-6">Todavía no hay lecturas.</td>
         </tr>
       </ng-template>
     </p-table>
