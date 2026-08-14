@@ -15,7 +15,7 @@ export const adminGuard: CanActivateFn = () => {
       if (user?.role === 'ADMIN') {
         return true;
       }
-      router.navigate(['/dashboard']);
+      router.navigate(['/dashboard'], { queryParams: { notice: 'admin-required' } });
       return false;
     }),
   );

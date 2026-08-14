@@ -1,6 +1,8 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { UIChart } from 'primeng/chart';
+import { Message } from 'primeng/message';
 import { Subscription, interval, map } from 'rxjs';
 import { BpmWidget } from '../../components/bpm-widget/bpm-widget';
 import { WearableCallout } from '../../components/wearable-callout/wearable-callout';
@@ -15,13 +17,17 @@ const TICK_COLOR = '#9ca3af';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [AsyncPipe, UIChart, BpmWidget, WearableCallout],
+  imports: [AsyncPipe, UIChart, Message, BpmWidget, WearableCallout],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit, OnDestroy {
   private readonly telemetryService = inject(TelemetryService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private pollingSubscription?: Subscription;
+
+  readonly adminRequiredNotice = signal(false);
 
   readonly records$ = this.telemetryService.records$;
   readonly latest$ = this.telemetryService.latest$;
@@ -58,6 +64,7 @@ export class Dashboard implements OnInit, OnDestroy {
   };
 
   ngOnInit(): void {
+    this.readAdminRequiredNotice();
     this.telemetryService.fetchRecent();
     this.pollingSubscription = interval(POLL_INTERVAL_MS).subscribe(() =>
       this.telemetryService.fetchRecent(),
@@ -66,6 +73,20 @@ export class Dashboard implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.pollingSubscription?.unsubscribe();
+  }
+
+  dismissAdminRequiredNotice(): void {
+    this.adminRequiredNotice.set(false);
+  }
+
+  // adminGuard redirige aqui con ?notice=admin-required. Se limpia la URL enseguida para que
+  // recargar la pagina no vuelva a mostrar el aviso.
+  private readAdminRequiredNotice(): void {
+    if (this.route.snapshot.queryParamMap.get('notice') !== 'admin-required') {
+      return;
+    }
+    this.adminRequiredNotice.set(true);
+    this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
   }
 
   private buildChartData(records: TelemetryRecord[]) {

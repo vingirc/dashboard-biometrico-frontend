@@ -1,50 +1,82 @@
-<div class="bg-gray-800 border border-gray-700 rounded-2xl p-6">
-  <div class="mb-4 flex items-end justify-between gap-4">
-    <div>
-      <p class="text-sm text-gray-400">Historial de telemetria</p>
+@if (isAdmin) {
+  <div class="bg-gray-800 border border-gray-700 rounded-2xl p-6">
+    <div class="mb-4">
+      <p class="text-sm text-gray-400">Estadísticas por usuario</p>
       <p class="text-xs text-gray-500">
-        Filtra en tiempo real por usuario, sin recargar la pagina. La busqueda es difusa: tolera
-        errores de tipeo.
+        Resumen de todas las lecturas registradas, agrupadas por usuario.
       </p>
     </div>
-    <label class="sr-only" for="historial-search">Buscar por usuario</label>
-    <input
-      id="historial-search"
-      type="search"
-      pInputText
-      placeholder="Buscar por usuario (tolera errores de tipeo)..."
-      [(ngModel)]="searchTerm"
-      (ngModelChange)="onSearchChange($event)"
-      class="w-72"
-    />
-  </div>
 
-  <p-table [value]="(filteredRecords$ | async) ?? []" [rowHover]="true" styleClass="p-datatable-sm">
-    <ng-template #header>
-      <tr>
-        <th>Usuario</th>
-        <th>BPM</th>
-        <th>Estado</th>
-        <th>Hora</th>
-      </tr>
-    </ng-template>
-    <ng-template #body let-record>
-      <tr>
-        <td class="text-gray-100">{{ record.username ?? 'Dispositivo anonimo' }}</td>
-        <td class="text-gray-300">{{ record.heartRate }}</td>
-        <td>
-          <p-tag
-            [value]="statusLabel(record.heartRate)"
-            [severity]="statusSeverity(record.heartRate)"
-          ></p-tag>
-        </td>
-        <td class="text-gray-400">{{ record.timestamp | date: 'dd/MM HH:mm:ss' }}</td>
-      </tr>
-    </ng-template>
-    <ng-template #emptymessage>
-      <tr>
-        <td colspan="4" class="text-center text-gray-500 py-6">Sin resultados para esa busqueda.</td>
-      </tr>
-    </ng-template>
-  </p-table>
-</div>
+    <p-table [value]="(stats$ | async) ?? []" [rowHover]="true" styleClass="p-datatable-sm">
+      <ng-template #header>
+        <tr>
+          <th scope="col">Usuario</th>
+          <th scope="col">Lecturas</th>
+          <th scope="col">Promedio BPM</th>
+          <th scope="col">Mín</th>
+          <th scope="col">Máx</th>
+          <th scope="col">Críticos</th>
+          <th scope="col">Bajos</th>
+          <th scope="col">Última lectura</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-row>
+        <tr>
+          <td class="text-gray-100">{{ row.username }}</td>
+          <td class="text-gray-300">{{ row.totalReadings }}</td>
+          <td class="text-gray-300">{{ formatAvg(row.avgHeartRate) }}</td>
+          <td class="text-gray-300">{{ row.minHeartRate ?? '—' }}</td>
+          <td class="text-gray-300">{{ row.maxHeartRate ?? '—' }}</td>
+          <td [class]="row.criticalCount ? 'text-red-400' : 'text-gray-500'">
+            {{ row.criticalCount }}
+          </td>
+          <td [class]="row.lowCount ? 'text-blue-400' : 'text-gray-500'">{{ row.lowCount }}</td>
+          <td class="text-gray-400">{{ row.lastReadingAt | date: 'dd/MM HH:mm:ss' }}</td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="8" class="text-center text-gray-500 py-6">Todavía no hay lecturas.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+} @else {
+  <div class="bg-gray-800 border border-gray-700 rounded-2xl p-6">
+    <div class="mb-4">
+      <p class="text-sm text-gray-400">Historial de telemetria</p>
+      <p class="text-xs text-gray-500">
+        Tus lecturas más recientes, de la más nueva a la más vieja.
+      </p>
+    </div>
+
+    <p-table [value]="(records$ | async) ?? []" [rowHover]="true" styleClass="p-datatable-sm">
+      <ng-template #header>
+        <tr>
+          <th scope="col">Usuario</th>
+          <th scope="col">BPM</th>
+          <th scope="col">Estado</th>
+          <th scope="col">Hora</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-record>
+        <tr>
+          <td class="text-gray-100">{{ record.username ?? 'Dispositivo anonimo' }}</td>
+          <td class="text-gray-300">{{ record.heartRate }}</td>
+          <td>
+            <p-tag
+              [value]="statusLabel(record.heartRate)"
+              [severity]="statusSeverity(record.heartRate)"
+            ></p-tag>
+          </td>
+          <td class="text-gray-400">{{ record.timestamp | date: 'dd/MM HH:mm:ss' }}</td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="4" class="text-center text-gray-500 py-6">Todavía no hay lecturas.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+}

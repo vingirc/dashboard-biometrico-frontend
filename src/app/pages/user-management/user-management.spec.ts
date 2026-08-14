@@ -1,6 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { lastValueFrom, of, take, toArray } from 'rxjs';
 
+import { AppUser, UserManagementService } from '../../services/user-management.service';
 import { UserManagement } from './user-management';
+
+const users: AppUser[] = [
+  { id: '1', username: 'mariana', role: 'USER', isEnabled: true },
+  { id: '2', username: 'luis', role: 'ADMIN', isEnabled: true },
+];
 
 describe('UserManagement', () => {
   let component: UserManagement;
@@ -9,6 +16,12 @@ describe('UserManagement', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [UserManagement],
+      providers: [
+        {
+          provide: UserManagementService,
+          useValue: { users$: of(users), fetchUsers: () => {} },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(UserManagement);
@@ -28,6 +41,15 @@ describe('UserManagement', () => {
     expect(component.editRole).toBe('ADMIN');
     expect(component.editPin).toBe('');
     expect(document.body.textContent).toContain('Editar usuario');
+  });
+
+  // El termino esta mal escrito a proposito: la busqueda difusa debe encontrarlo igual.
+  it('matches usernames despite typos', async () => {
+    component.onSearchChange('marianna');
+    const emissions = await lastValueFrom(component.filteredUsers$.pipe(take(2), toArray()));
+
+    expect(emissions[0]).toEqual(users);
+    expect(emissions[1].map((u) => u.username)).toEqual(['mariana']);
   });
 
   it('rejects a PIN that does not match the backend rule', () => {

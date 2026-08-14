@@ -1,0 +1,41 @@
+<div class="bg-gray-800 border border-gray-700 rounded-2xl p-6">
+  <div class="mb-4">
+    <p class="text-sm text-gray-400">Registro de auditoría</p>
+    <p class="text-xs text-gray-500">
+      Eventos de seguridad y de administración de cuentas, del más reciente al más antiguo.
+    </p>
+  </div>
+
+  <p-table [value]="(entries$ | async) ?? []" [rowHover]="true" styleClass="p-datatable-sm">
+    <ng-template #header>
+      <tr>
+        <th scope="col">Evento</th>
+        <th scope="col">Actor</th>
+        <th scope="col">Objetivo</th>
+        <th scope="col">IP</th>
+        <th scope="col">Detalle</th>
+        <th scope="col">Fecha</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-entry>
+      <tr>
+        <td>
+          <p-tag
+            [value]="eventLabel(entry.eventType)"
+            [severity]="eventSeverity(entry.eventType)"
+          ></p-tag>
+        </td>
+        <td class="text-gray-100">{{ entry.actorUsername ?? '—' }}</td>
+        <td class="text-gray-300">{{ entry.targetUsername ?? '—' }}</td>
+        <td class="text-gray-400">{{ entry.ipAddress ?? '—' }}</td>
+        <td class="text-gray-400">{{ entry.detail ?? '—' }}</td>
+        <td class="text-gray-400">{{ entry.createdAt | date: 'dd/MM HH:mm:ss' }}</td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="6" class="text-center text-gray-500 py-6">Todavía no hay eventos.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

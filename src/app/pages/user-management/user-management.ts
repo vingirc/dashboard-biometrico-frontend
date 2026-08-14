@@ -2,6 +2,7 @@ import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import Fuse from 'fuse.js';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
@@ -22,6 +23,12 @@ import { Role } from '../../services/auth.service';
 import { AppUser, UserManagementService } from '../../services/user-management.service';
 
 const PIN_PATTERN = /^\d{4,6}$/;
+
+const FUSE_OPTIONS = {
+  keys: ['username', 'role'],
+  threshold: 0.35,
+  ignoreLocation: true,
+};
 
 @Component({
   selector: 'app-user-management',
@@ -50,19 +57,18 @@ export class UserManagement implements OnInit {
   editRole: Role = 'USER';
   editPin = '';
 
-  // Buscador reactivo (Practicas 3/4): filtra en el cliente, sin recargar la pagina.
+  // Buscador reactivo (Practicas 3/4): filtra en el cliente con Fuse.js, sin recargar la pagina
+  // ni volver a pedir datos al backend. La busqueda difusa tolera errores de tipeo.
   readonly filteredUsers$ = combineLatest([
     this.users$,
     this.searchTerm$.pipe(debounceTime(150), startWith('')),
   ]).pipe(
     map(([users, term]) => {
-      const needle = term.trim().toLowerCase();
+      const needle = term.trim();
       if (!needle) {
         return users;
       }
-      return users.filter(
-        (u) => u.username.toLowerCase().includes(needle) || u.role.toLowerCase().includes(needle),
-      );
+      return new Fuse(users, FUSE_OPTIONS).search(needle).map((result) => result.item);
     }),
   );
 

@@ -17,18 +17,28 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadComponent: () => import('./pages/dashboard/dashboard')
-          .then(m => m.Dashboard)
+          .then(m => m.Dashboard),
+        data: { title: 'Dashboard en Vivo' }
       },
       {
         path: 'historial',
         loadComponent: () => import('./pages/historial/historial')
-          .then(m => m.Historial)
+          .then(m => m.Historial),
+        data: { title: 'Historial' }
       },
       {
         path: 'usuarios',
         loadComponent: () => import('./pages/user-management/user-management')
           .then(m => m.UserManagement),
-        canActivate: [adminGuard]
+        canActivate: [adminGuard],
+        data: { title: 'Gestión de Usuarios' }
+      },
+      {
+        path: 'auditoria',
+        loadComponent: () => import('./pages/audit-log/audit-log')
+          .then(m => m.AuditLog),
+        canActivate: [adminGuard],
+        data: { title: 'Registro de Auditoría' }
       },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]

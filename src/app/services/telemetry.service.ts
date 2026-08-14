@@ -16,6 +16,17 @@ export interface TelemetryIngestRequest {
   heartRate: number;
 }
 
+export interface TelemetryUserStats {
+  username: string;
+  totalReadings: number;
+  avgHeartRate: number | null;
+  minHeartRate: number | null;
+  maxHeartRate: number | null;
+  criticalCount: number;
+  lowCount: number;
+  lastReadingAt: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class TelemetryService {
   private readonly http = inject(HttpClient);
@@ -33,6 +44,11 @@ export class TelemetryService {
       next: (records) => this.recordsSubject.next(records),
       error: (err) => console.error('Error al obtener la telemetría reciente', err),
     });
+  }
+
+  // Solo ADMIN: el backend agrega las lecturas por usuario y devuelve el resumen ya calculado.
+  fetchStats(): Observable<TelemetryUserStats[]> {
+    return this.http.get<TelemetryUserStats[]>(`${this.apiUrl}/stats`);
   }
 
   ingest(payload: TelemetryIngestRequest): Observable<TelemetryRecord> {
